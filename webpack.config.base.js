@@ -5,6 +5,10 @@ const routeDataMapper = require('webpack-route-data-mapper')
 const readConfig = require('read-config')
 const path = require('path')
 
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const BrowserSyncPlugin = require('browser-sync-webpack-plugin')
+
+
 // base config
 const SRC = './src'
 const DEST = './public'
@@ -12,20 +16,20 @@ const HOST = process.env.HOST || '0.0.0.0'
 const PORT = process.env.PORT || 3000
 
 const constants = readConfig(`${SRC}/constants.yml`)
-const { BASE_DIR } = constants
+const {
+    BASE_DIR
+} = constants
 
 
 // page/**/*.pug -> dist/**/*.html
 const htmlTemplates = routeDataMapper({
     baseDir: `${SRC}/pug/page`,
     src: '**/[!_]*.pug',
-    locals: Object.assign(
-        {},
-        constants,
-        {
+    locals: Object.assign({},
+        constants, {
             meta: readConfig(`${SRC}/pug/meta.yml`)
         }
-    )
+    ),
 })
 
 module.exports = {
@@ -42,8 +46,7 @@ module.exports = {
     },
     module: {
         // 各ファイル形式ごとのビルド設定
-        rules: [
-            {
+        rules: [{
                 test: /\.js$/,
                 loader: 'babel-loader',
                 exclude: /(node_modules)/,
@@ -54,15 +57,13 @@ module.exports = {
             },
             {
                 test: /\.pug$/,
-                use: [
-                    {
-                        loader: 'pug-loader',
-                        options: {
-                            root: path.resolve(`${SRC}/pug/`),
-                            pretty: true,
-                        }
+                use: [{
+                    loader: 'pug-loader',
+                    options: {
+                        root: path.resolve(`${SRC}/pug/`),
+                        pretty: true,
                     }
-                ],
+                }],
             },
             {
                 test: /\.(jpe?g|png|gif|svg)$/,
@@ -74,8 +75,7 @@ module.exports = {
             {
                 test: /\.scss$/,
                 use: ExtractTextPlugin.extract({
-                    use: [
-                        {
+                    use: [{
                             loader: 'css-loader',
                             options: {
                                 importLoaders: 2,
@@ -85,7 +85,7 @@ module.exports = {
                         {
                             loader: 'sass-loader',
                             options: {
-                                includePaths: [ `${SRC}/scss` ],
+                                includePaths: [`${SRC}/scss`],
                             },
                         }
                     ]
@@ -103,6 +103,9 @@ module.exports = {
         port: PORT,
         contentBase: DEST,
         openPage: path.relative('/', BASE_DIR),
+        proxy: {
+            '*': 'http://0.0.0.0:8080'
+        },
     },
     // キャシュ有効化
     cache: true,
@@ -113,11 +116,25 @@ module.exports = {
             '@': path.join(__dirname, SRC, 'js'),
         }
     },
-
     plugins: [
         // 複数のHTMLファイルを出力する
         ...htmlTemplates,
         // style.cssを出力
-        new ExtractTextPlugin('[name]')
+        new ExtractTextPlugin('[name]'),
+        new BrowserSyncPlugin({
+            proxy: 'http://0.0.0.0:8080',
+            files: [{
+                match: [
+                    'src/*/*'
+                ],
+            }]
+        }),
+        // htmlをtplにリネームしてコピー
+        new CopyWebpackPlugin([{
+            from: path.resolve(__dirname, 'public/templates/*.html'),
+            test: /(.+\/)?(.+)\.html/,
+            to: 'templates/[2].tpl',
+            force: true
+        }]),
     ],
 }

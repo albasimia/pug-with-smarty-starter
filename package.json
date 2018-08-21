@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "webpack --mode production --progress",
-    "start": "webpack-dev-server --mode development --inline --open"
+    "start": "concurrently \"php -S 0.0.0.0:8080 -t public -c public/php.ini\" \"webpack --mode development --watch\""
   },
   "devDependencies": {
     "autoprefixer": "^8.2.0",
@@ -46,5 +46,12 @@
     "ie >= 11",
     "ios >= 9",
     "android >= 4.4"
-  ]
+  ],
+  "dependencies": {
+    "browser-sync": "^2.24.6",
+    "browser-sync-webpack-plugin": "^2.2.2",
+    "concurrently": "^3.6.1",
+    "copy-webpack-plugin": "^4.5.2",
+    "rename-webpack-plugin": "^1.0.1"
+  }
 }
