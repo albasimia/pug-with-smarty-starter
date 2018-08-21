@@ -125,7 +125,9 @@ module.exports = {
             proxy: 'http://0.0.0.0:8080',
             files: [{
                 match: [
-                    'src/*/*'
+                    'src/*/*',
+                    'public/index.php',
+                    'public/templates/*.tpl'
                 ],
             }]
         }),
