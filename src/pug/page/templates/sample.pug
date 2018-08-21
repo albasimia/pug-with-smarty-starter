@@ -9,5 +9,7 @@ prepend config-block
 
 block content-block
   .sample-icon 
-  .test 
-    |{$sample}
+  .test {$sample}
+    |{for $foo=1 to 3}
+    li {$foo}
+    |{/for}
